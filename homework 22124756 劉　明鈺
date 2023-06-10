@@ -1,0 +1,50 @@
+import pandas as pd
+import numpy as np
+
+
+# Load data
+#pwt90 = pd.read_stata('https://www.rug.nl/ggdc/docs/pwt90.dta')
+pwt1001 = pd.read_stata('https://dataverse.nl/api/access/datafile/354098')
+
+# Filter and select relevant columns
+data = pwt1001.loc[pwt1001['country'].isin(["Japan", "United Kingdom", "Germany", "France", "Italy", "United States", "Canada"])][['year', 'countrycode', 'rgdpna', 'rkna', 'emp', 'labsh','avh']]
+# "Belgium", "Canada", "Denmark", "Finland", "France", "Germany", "Greece",
+                                        #  "Iceland", "Treland", "Itary", "Japan", "Netherlands", "New Zealand", "Norway", "Portugal", "Spain", 
+                                        #  "Sweden", "Switzerland", "United Kingdom", "United States America"
+data = data.loc[(data['year'] >= 1995) & (data['year'] <= 2019)].dropna()
+
+# Calculate additional columns
+data['y_pc'] = np.log(data['rgdpna'] / (data['emp']*data['avh']))  # 一人当たりGDP
+data['k_pc'] = np.log(data['rkna'] / (data['emp']*data['avh']))  # 一人当たり資本
+data['a'] = 1 - data['labsh']  # Capital share　－　資本シェア
+
+# Order by year
+data = data.sort_values('year')
+
+# Group by isocode
+grouped_data = data.groupby('countrycode')
+
+# Calculate growth rates and Solow residual
+data['g'] = (grouped_data['y_pc'].diff() * 100)  # Growth rate of GDP per capita
+data['c'] = (grouped_data['k_pc'].diff() * 100) * (data['a']) # 資本深化
+data['t'] = data['g']  - data['c'] # 技術進歩
+
+grouped_data = data.groupby('countrycode')
+
+
+
+# Remove missing values
+data = data.dropna()
+
+# Calculate summary statistics
+summary = data.groupby('countrycode').agg({'g': 'mean','c': 'mean','t': 'mean'})
+
+# Calculate additional summary statistics
+summary['Growth Rate'] = summary['g']
+summary['Capital Deepening'] = summary['c']
+summary['TFP growth'] = summary['t']
+summary['Capital Share'] = summary['Capital Deepening'] / summary['Growth Rate']
+summary['TFP Share'] = summary['TFP growth'] / summary['Growth Rate']
+# Print output
+#print(summary['Growth Rate'],summary['Capital Share'],summary['TFP Share'],summary['Capital Deepening'],summary['TFP growth'])
+print(summary)
