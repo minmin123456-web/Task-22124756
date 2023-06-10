@@ -8,9 +8,6 @@ pwt1001 = pd.read_stata('https://dataverse.nl/api/access/datafile/354098')
 
 # Filter and select relevant columns
 data = pwt1001.loc[pwt1001['country'].isin(["Japan", "United Kingdom", "Germany", "France", "Italy", "United States", "Canada"])][['year', 'countrycode', 'rgdpna', 'rkna', 'emp', 'labsh','avh']]
-# "Belgium", "Canada", "Denmark", "Finland", "France", "Germany", "Greece",
-                                        #  "Iceland", "Treland", "Itary", "Japan", "Netherlands", "New Zealand", "Norway", "Portugal", "Spain", 
-                                        #  "Sweden", "Switzerland", "United Kingdom", "United States America"
 data = data.loc[(data['year'] >= 1995) & (data['year'] <= 2019)].dropna()
 
 # Calculate additional columns
